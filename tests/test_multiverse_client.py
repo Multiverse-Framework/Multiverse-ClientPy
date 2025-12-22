@@ -120,7 +120,7 @@ class MultiverseClientTestCase(unittest.TestCase):
              "--transport", "udp", "--bind", "127.0.0.1:8000",
              "--transport", "zmq", "--bind", "tcp://*:9000", ])
         logger.info(f"multiverse_server started on {cls.multiverse_server_path}")
-        time.sleep(0.5)
+        time.sleep(0.5) # TODO: Remove
 
     @classmethod
     def tearDownClass(cls):
