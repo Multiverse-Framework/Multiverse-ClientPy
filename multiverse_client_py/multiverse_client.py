@@ -26,7 +26,8 @@ class MultiverseMetaData:
 class MultiverseClient:
     """Base class for the Multiverse Client"""
 
-    _host: str = "tcp://127.0.0.1"
+    _transport: str ="Tcp"
+    _host: str = "127.0.0.1"
     _server_port: str = "7000"
     _client_port: str
     _meta_data: MultiverseMetaData
@@ -57,7 +58,7 @@ class MultiverseClient:
             raise ValueError(f"Must specify simulation name.")
         self._send_data = None
         self._meta_data = multiverse_meta_data
-        self._multiverse_socket = MultiverseClientPybind()
+        self._multiverse_socket = MultiverseClientPybind(transport=self._transport)
         self.request_meta_data = {
             "meta_data": self._meta_data.__dict__,
             "send": {},
