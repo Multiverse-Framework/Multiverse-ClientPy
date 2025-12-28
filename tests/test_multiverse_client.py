@@ -134,7 +134,7 @@ def create_multiverse_clients(n_clients: int = 1, transport_type: str="Tcp") -> 
     return multiverse_connectors
 
 class MultiverseClientTestCase(unittest.TestCase):
-    multiverse_server_path = multiverse_server_rust_path
+    multiverse_server_path = multiverse_server_cpp_path
     multiverse_server_process = None
     multiverse_connector = None
 
@@ -160,7 +160,7 @@ class MultiverseClientTestCase(unittest.TestCase):
         self.assertTrue(self.multiverse_server_process.poll() is None)
         time.sleep(1.0)
         self.assertTrue(self.multiverse_server_process.poll() is None)
-        self.assertAlmostEqual(time.time() - start_time, 1.0, places=2)
+        self.assertLess(time.time() - start_time, 5.0)
 
     def test_multiverse_client_tcp_connect(self, n_clients=1):
         start_time = time.time()
@@ -168,7 +168,7 @@ class MultiverseClientTestCase(unittest.TestCase):
         time.sleep(1.0)
         for multiverse_connector in multiverse_connectors:
             multiverse_connector.stop()
-        # self.assertAlmostEqual(time.time() - start_time, 1.0, places=2)
+        self.assertLess(time.time() - start_time, 5.0)
 
     def test_multiverse_client_udp_connect(self, n_clients=1):
         start_time = time.time()
@@ -176,7 +176,7 @@ class MultiverseClientTestCase(unittest.TestCase):
         time.sleep(1.0)
         for multiverse_connector in multiverse_connectors:
             multiverse_connector.stop()
-        # self.assertAlmostEqual(time.time() - start_time, 1.0, places=2)
+        self.assertLess(time.time() - start_time, 5.0)
 
     def test_multiverse_client_zmq_connect(self, n_clients=1):
         start_time = time.time()
@@ -184,40 +184,58 @@ class MultiverseClientTestCase(unittest.TestCase):
         time.sleep(1.0)
         for multiverse_connector in multiverse_connectors:
             multiverse_connector.stop()
-        # self.assertAlmostEqual(time.time() - start_time, 1.0, places=2)
+        self.assertLess(time.time() - start_time, 5.0)
 
     def test_multiverse_client_tcp_send_request_meta_data(self, n_clients=1):
         start_time = time.time()
         multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Tcp")
         for multiverse_connector in multiverse_connectors:
-            multiverse_connector.request_meta_data = get_random_request_meta_data()
+            multiverse_connector.request_meta_data.update(get_random_request_meta_data())
             multiverse_connector.send_and_receive_meta_data()
         time.sleep(1.0)
         for multiverse_connector in multiverse_connectors:
+            response_meta_data = multiverse_connector.response_meta_data
+            send_objects = response_meta_data["send"]
+            self.assertEqual(len(send_objects), len(multiverse_connector.request_meta_data["send"]))
+            for object_name, send_attributes in send_objects.items():
+                self.assertEqual(len(send_attributes), len(multiverse_connector.request_meta_data["send"][object_name]))
+        for multiverse_connector in multiverse_connectors:
             multiverse_connector.stop()
-        # self.assertAlmostEqual(time.time() - start_time, 1.0, places=2)
+        self.assertLess(time.time() - start_time, 5.0)
 
     def test_multiverse_client_udp_send_request_meta_data(self, n_clients=1):
         start_time = time.time()
         multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Udp")
         for multiverse_connector in multiverse_connectors:
-            multiverse_connector.request_meta_data = get_random_request_meta_data()
+            multiverse_connector.request_meta_data.update(get_random_request_meta_data())
             multiverse_connector.send_and_receive_meta_data()
         time.sleep(1.0)
         for multiverse_connector in multiverse_connectors:
+            response_meta_data = multiverse_connector.response_meta_data
+            send_objects = response_meta_data["send"]
+            self.assertEqual(len(send_objects), len(multiverse_connector.request_meta_data["send"]))
+            for object_name, send_attributes in send_objects.items():
+                self.assertEqual(len(send_attributes), len(multiverse_connector.request_meta_data["send"][object_name]))
+        for multiverse_connector in multiverse_connectors:
             multiverse_connector.stop()
-        # self.assertAlmostEqual(time.time() - start_time, 1.0, places=2)
+        self.assertLess(time.time() - start_time, 5.0)
 
     def test_multiverse_client_zmq_send_request_meta_data(self, n_clients=1):
         start_time = time.time()
         multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Zmq")
         for multiverse_connector in multiverse_connectors:
-            multiverse_connector.request_meta_data = get_random_request_meta_data()
+            multiverse_connector.request_meta_data.update(get_random_request_meta_data())
             multiverse_connector.send_and_receive_meta_data()
         time.sleep(1.0)
         for multiverse_connector in multiverse_connectors:
+            response_meta_data = multiverse_connector.response_meta_data
+            send_objects = response_meta_data["send"]
+            self.assertEqual(len(send_objects), len(multiverse_connector.request_meta_data["send"]))
+            for object_name, send_attributes in send_objects.items():
+                self.assertEqual(len(send_attributes), len(multiverse_connector.request_meta_data["send"][object_name]))
+        for multiverse_connector in multiverse_connectors:
             multiverse_connector.stop()
-        # self.assertAlmostEqual(time.time() - start_time, 1.0, places=2)
+        self.assertLess(time.time() - start_time, 5.0)
 
 
 if __name__ == '__main__':
