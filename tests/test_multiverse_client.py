@@ -186,56 +186,35 @@ class MultiverseClientTestCase(unittest.TestCase):
             multiverse_connector.stop()
         self.assertLess(time.time() - start_time, 5.0)
 
-    def test_multiverse_client_tcp_send_request_meta_data(self, n_clients=1):
+    def check_multiverse_client_send_request_meta_data(self, multiverse_connectors: List[MultiverseConnector]):
         start_time = time.time()
-        multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Tcp")
         for multiverse_connector in multiverse_connectors:
             multiverse_connector.request_meta_data.update(get_random_request_meta_data())
             multiverse_connector.send_and_receive_meta_data()
         time.sleep(1.0)
         for multiverse_connector in multiverse_connectors:
-            response_meta_data = multiverse_connector.response_meta_data
-            send_objects = response_meta_data["send"]
+            while "send" not in multiverse_connector.response_meta_data:
+                self.multiverse_connector.loginfo("Waiting for send response meta data.")
+                time.sleep(0.01)
+            send_objects = multiverse_connector.response_meta_data["send"]
             self.assertEqual(len(send_objects), len(multiverse_connector.request_meta_data["send"]))
             for object_name, send_attributes in send_objects.items():
                 self.assertEqual(len(send_attributes), len(multiverse_connector.request_meta_data["send"][object_name]))
         for multiverse_connector in multiverse_connectors:
             multiverse_connector.stop()
         self.assertLess(time.time() - start_time, 5.0)
+
+    def test_multiverse_client_tcp_send_request_meta_data(self, n_clients=1):
+        multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Tcp")
+        self.check_multiverse_client_send_request_meta_data(multiverse_connectors)
 
     def test_multiverse_client_udp_send_request_meta_data(self, n_clients=1):
-        start_time = time.time()
         multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Udp")
-        for multiverse_connector in multiverse_connectors:
-            multiverse_connector.request_meta_data.update(get_random_request_meta_data())
-            multiverse_connector.send_and_receive_meta_data()
-        time.sleep(1.0)
-        for multiverse_connector in multiverse_connectors:
-            response_meta_data = multiverse_connector.response_meta_data
-            send_objects = response_meta_data["send"]
-            self.assertEqual(len(send_objects), len(multiverse_connector.request_meta_data["send"]))
-            for object_name, send_attributes in send_objects.items():
-                self.assertEqual(len(send_attributes), len(multiverse_connector.request_meta_data["send"][object_name]))
-        for multiverse_connector in multiverse_connectors:
-            multiverse_connector.stop()
-        self.assertLess(time.time() - start_time, 5.0)
+        self.check_multiverse_client_send_request_meta_data(multiverse_connectors)
 
     def test_multiverse_client_zmq_send_request_meta_data(self, n_clients=1):
-        start_time = time.time()
         multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Zmq")
-        for multiverse_connector in multiverse_connectors:
-            multiverse_connector.request_meta_data.update(get_random_request_meta_data())
-            multiverse_connector.send_and_receive_meta_data()
-        time.sleep(1.0)
-        for multiverse_connector in multiverse_connectors:
-            response_meta_data = multiverse_connector.response_meta_data
-            send_objects = response_meta_data["send"]
-            self.assertEqual(len(send_objects), len(multiverse_connector.request_meta_data["send"]))
-            for object_name, send_attributes in send_objects.items():
-                self.assertEqual(len(send_attributes), len(multiverse_connector.request_meta_data["send"][object_name]))
-        for multiverse_connector in multiverse_connectors:
-            multiverse_connector.stop()
-        self.assertLess(time.time() - start_time, 5.0)
+        self.check_multiverse_client_send_request_meta_data(multiverse_connectors)
 
 
 if __name__ == '__main__':
