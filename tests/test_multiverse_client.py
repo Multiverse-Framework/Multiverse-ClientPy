@@ -194,7 +194,7 @@ class MultiverseClientTestCase(unittest.TestCase):
         time.sleep(1.0)
         for multiverse_connector in multiverse_connectors:
             while "send" not in multiverse_connector.response_meta_data:
-                self.multiverse_connector.loginfo("Waiting for send response meta data.")
+                multiverse_connector.loginfo("Waiting for send response meta data.")
                 time.sleep(0.01)
             send_objects = multiverse_connector.response_meta_data["send"]
             self.assertEqual(len(send_objects), len(multiverse_connector.request_meta_data["send"]))
