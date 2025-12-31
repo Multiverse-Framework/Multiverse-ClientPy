@@ -147,7 +147,6 @@ class MultiverseClientTestCase(unittest.TestCase):
              "--transport", "udp", "--bind", "127.0.0.1:8000",
              "--transport", "zmq", "--bind", "tcp://*:9000", ])
         logger.info(f"multiverse_server started on {cls.multiverse_server_path}")
-        time.sleep(0.5) # TODO: Remove
 
     @classmethod
     def tearDownClass(cls):
@@ -191,7 +190,7 @@ class MultiverseClientTestCase(unittest.TestCase):
         for multiverse_connector in multiverse_connectors:
             multiverse_connector.request_meta_data.update(get_random_request_meta_data())
             multiverse_connector.send_and_receive_meta_data()
-        time.sleep(1.0)
+            time.sleep(0.1)
         for multiverse_connector in multiverse_connectors:
             while "send" not in multiverse_connector.response_meta_data:
                 multiverse_connector.loginfo("Waiting for send response meta data.")
@@ -204,17 +203,42 @@ class MultiverseClientTestCase(unittest.TestCase):
             multiverse_connector.stop()
         self.assertLess(time.time() - start_time, 5.0)
 
-    def test_multiverse_client_tcp_send_request_meta_data(self, n_clients=1):
+    def check_multiverse_client_send_data(self, multiverse_connectors: List[MultiverseConnector], n_iterations: int = 1):
+        for _ in range(n_iterations):
+            start_time = time.time()
+            for multiverse_connector in multiverse_connectors:
+                send_data = [start_time]
+                send_objects = multiverse_connector.response_meta_data["send"]
+                for object_name, send_attributes in send_objects.items():
+                    for attribute_name, attribute_data in send_attributes.items():
+                        data = numpy.random.normal(size=len(attribute_data))
+                        send_data.extend(data)
+                multiverse_connector.send_data = send_data
+                multiverse_connector.send_and_receive_data()
+            time.sleep(0.1)
+            for multiverse_connector in multiverse_connectors:
+                receive_data = multiverse_connector.receive_data
+                self.assertEqual(receive_data[0], start_time)
+        for multiverse_connector in multiverse_connectors:
+            multiverse_connector.stop()
+
+    def test_multiverse_client_tcp_send_data(self, n_clients=1):
         multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Tcp")
         self.check_multiverse_client_send_request_meta_data(multiverse_connectors)
+        self.check_multiverse_client_send_data(multiverse_connectors)
+        self.check_multiverse_client_send_data(multiverse_connectors, n_iterations=5)
 
-    def test_multiverse_client_udp_send_request_meta_data(self, n_clients=1):
+    def test_multiverse_client_udp_send_data(self, n_clients=1):
         multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Udp")
         self.check_multiverse_client_send_request_meta_data(multiverse_connectors)
+        self.check_multiverse_client_send_data(multiverse_connectors)
+        self.check_multiverse_client_send_data(multiverse_connectors, n_iterations=5)
 
-    def test_multiverse_client_zmq_send_request_meta_data(self, n_clients=1):
+    def test_multiverse_client_zmq_send_data(self, n_clients=1):
         multiverse_connectors = create_multiverse_clients(n_clients=n_clients, transport_type="Zmq")
         self.check_multiverse_client_send_request_meta_data(multiverse_connectors)
+        self.check_multiverse_client_send_data(multiverse_connectors)
+        self.check_multiverse_client_send_data(multiverse_connectors, n_iterations=5)
 
 
 if __name__ == '__main__':
