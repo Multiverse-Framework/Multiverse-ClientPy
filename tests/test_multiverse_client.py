@@ -134,7 +134,7 @@ def create_multiverse_clients(n_clients: int = 1, transport_type: str="Tcp") -> 
     return multiverse_connectors
 
 class MultiverseClientTestCase(unittest.TestCase):
-    multiverse_server_path = multiverse_server_cpp_path
+    multiverse_server_path = multiverse_server_rust_path
     multiverse_server_process = None
     multiverse_connector = None
 
