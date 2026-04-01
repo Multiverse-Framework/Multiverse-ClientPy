@@ -1,3 +1,17 @@
+Metadata-Version: 2.4
+Name: multiverse_client_py
+Version: 1.1.0
+Summary: Python bindings for Multiverse Client (pybind extension)
+Author: Giang Nguyen, Kien Bui
+License: MIT
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: Implementation :: CPython
+Classifier: Operating System :: POSIX :: Linux
+Classifier: Operating System :: Microsoft :: Windows
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy>=1.23
+
 # Multiverse-ClientPy #
 
 [![Build Status](https://bitbucket.org/vinrobotics/multiverse-clientpy/badges/pipeline.svg)](https://bitbucket.org/vinrobotics/multiverse-clientpy/pipelines)

@@ -1,0 +1,59 @@
+image: ubuntu:22.04
+
+pipelines:
+  default:
+    - step:
+        name: "🐧 Ubuntu 22.04 | 🐍 3.8–3.14"
+        script:
+          - set -euo pipefail
+          - export DEBIAN_FRONTEND=noninteractive
+          - apt-get update
+          - apt-get install -y --no-install-recommends
+              curl
+              gnupg
+              software-properties-common
+              build-essential
+          - add-apt-repository -y ppa:deadsnakes/ppa
+          - apt-get update
+
+          # chmod +x to make sure the executables are executable
+          - chmod +x tests/multiverse_server_cpp tests/multiverse_server_rust
+
+          # Install multiple Pythons if available (venv is optional; bootstrap pip if missing)
+          - |
+            PY_VERSIONS="3.8 3.9 3.10 3.11 3.12 3.13 3.14"
+
+            for v in $PY_VERSIONS; do
+              if ! apt-cache show "python${v}" >/dev/null 2>&1; then
+                echo "Skip Python ${v} (python${v} not available)."
+                continue
+              fi
+
+              echo "== Python ${v} =="
+
+              apt-get install -y --no-install-recommends "python${v}-dev"
+
+              if apt-cache show "python${v}-venv" >/dev/null 2>&1; then
+                apt-get install -y --no-install-recommends "python${v}-venv"
+                python${v} -m ensurepip --upgrade || true
+              else
+                echo "python${v}-venv not available; will bootstrap pip via get-pip.py"
+              fi
+
+              # Make sure pip exists (works even if ensurepip/venv is missing)
+              if ! python${v} -m pip --version >/dev/null 2>&1; then
+                curl -sS https://bootstrap.pypa.io/get-pip.py | python${v}
+              fi
+
+              # Install & test (no venv to keep it short)
+              python${v} -m pip install -U pip build setuptools wheel
+              python${v} -m pip install -e .
+            done
+
+          # Run tests
+          - |
+            PY_VERSIONS="3.8 3.9 3.10 3.11 3.12 3.13 3.14"
+            
+            for v in $PY_VERSIONS; do
+              python${v} -m unittest tests.test_multiverse_client
+            done
